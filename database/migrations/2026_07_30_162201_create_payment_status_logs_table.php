@@ -1,0 +1,42 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('payment_status_logs', function (Blueprint $table) {
+            $table->id();
+
+            $table->foreignId('payment_transaction_id')->constrained('payment_transactions')->cascadeOnDelete();
+
+            // State machine transition
+            $table->string('from_status', 30)->nullable();
+            $table->string('to_status', 30);
+
+            // Siapa yang memicu perubahan status
+            $table->string('triggered_by', 50)->default('system');
+
+            // Kasir / user (nullable jika diproses oleh sistem)
+            $table->unsignedBigInteger('actor_id')->nullable();
+
+            // Catatan tambahan
+            $table->text('note')->nullable();
+
+            // Raw data dari Midtrans webhook (untuk audit)
+            $table->json('metadata')->nullable();
+
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->index('payment_transaction_id');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('payment_status_logs');
+    }
+};

@@ -208,10 +208,10 @@ class LoginController extends Controller
             ]);
         }
 
-        // Matikan verifikasi SSL (verify => false) jika dijalankan di localhost
+        // Verifikasi SSL aktif otomatis di production, dan mati di localhost / local development
         $response = Http::asForm()
             ->withOptions([
-                'verify' => !$isLocal
+                'verify' => ! $isLocal && ! app()->isLocal(),
             ])
             ->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
                 'secret'   => $secretKey,

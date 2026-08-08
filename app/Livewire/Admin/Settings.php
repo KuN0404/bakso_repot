@@ -104,6 +104,8 @@ class Settings extends Component
 
     public function removeLogoWeb(): void
     {
+        $this->authorize('manage_settings');
+
         if ($this->existing_logo_web) {
             $this->deleteOldLogo($this->existing_logo_web);
             Setting::set('logo_web', '', 'general');
@@ -122,6 +124,8 @@ class Settings extends Component
 
     public function removeSiteLogo(): void
     {
+        $this->authorize('manage_settings');
+
         if ($this->existing_site_logo) {
             $this->deleteOldLogo($this->existing_site_logo);
             Setting::set('site_logo', '', 'general');
@@ -140,6 +144,8 @@ class Settings extends Component
 
     public function saveGeneral(): void
     {
+        $this->authorize('manage_settings');
+
         $this->validate([
             'logo_web' => 'nullable|file|mimes:png,jpg,jpeg,svg,webp|max:2048',
             'site_logo' => 'nullable|file|mimes:png,jpg,jpeg,svg,webp,ico|max:1024',
@@ -192,6 +198,8 @@ class Settings extends Component
 
     public function savePrinter(): void
     {
+        $this->authorize('manage_printers');
+
         $printer = PrinterConfig::getDefault();
         
         if ($printer) {

@@ -125,6 +125,8 @@ class Products extends Component
 
     public function saveStock(string $type, int $amount, ?string $note): void
     {
+        $this->authorize('adjust_stock');
+
         $this->stockAdjustmentType = $type;
         $this->stockAdjustmentAmount = $amount;
         $this->stockNote = $note;
@@ -225,6 +227,8 @@ class Products extends Component
 
     public function save(): void
     {
+        $this->authorize($this->editingId ? 'edit_products' : 'create_products');
+
         // Custom validation rules
         $rules = [
             'category_id' => 'required|exists:categories,id',
@@ -304,14 +308,16 @@ class Products extends Component
 
     public function delete(int $id): void
     {
+        $this->authorize('delete_products');
+
         $product = Product::findOrFail($id);
-        
+
         // Delete image first
         $product->deleteImage();
-        
+
         // Then delete product
         $product->delete();
-        
+
         $this->dispatch('notify', type: 'success', message: 'Produk berhasil dihapus');
     }
 
@@ -320,6 +326,8 @@ class Products extends Component
      */
     public function removeImage(): void
     {
+        $this->authorize('edit_products');
+
         if ($this->editingId && $this->existingImage) {
             $product = Product::find($this->editingId);
             if ($product) {

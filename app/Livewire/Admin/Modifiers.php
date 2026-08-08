@@ -84,6 +84,8 @@ class Modifiers extends Component
 
     public function saveGroup(): void
     {
+        $this->authorize($this->editingGroupId ? 'edit_modifiers' : 'create_modifiers');
+
         $this->validate(['groupName' => 'required|min:2|max:100']);
 
         $data = [
@@ -106,6 +108,8 @@ class Modifiers extends Component
 
     public function deleteGroup(int $id): void
     {
+        $this->authorize('delete_modifiers');
+
         ModifierGroup::findOrFail($id)->delete();
         $this->dispatch('notify', type: 'success', message: 'Grup modifier berhasil dihapus');
     }
@@ -138,6 +142,8 @@ class Modifiers extends Component
 
     public function saveModifier(): void
     {
+        $this->authorize($this->editingModifierId ? 'edit_modifiers' : 'create_modifiers');
+
         $this->validate(['modifierName' => 'required|min:2|max:100']);
 
         $data = [
@@ -160,6 +166,8 @@ class Modifiers extends Component
 
     public function deleteModifier(int $id): void
     {
+        $this->authorize('delete_modifiers');
+
         Modifier::findOrFail($id)->delete();
         $this->dispatch('notify', type: 'success', message: 'Modifier berhasil dihapus');
     }

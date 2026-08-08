@@ -33,7 +33,19 @@ class Users extends Component
 
     public string $search = '';
 
+    public string $statusFilter = 'active';
+
     public bool $isEditingSuperAdmin = false;
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatusFilter(): void
+    {
+        $this->resetPage();
+    }
 
     public function create(): void
     {
@@ -44,6 +56,12 @@ class Users extends Component
     public function edit(int $id): void
     {
         $user = User::getForEdit($id);
+
+        if (!$user->isActive()) {
+            $this->dispatch('notify', type: 'error', message: 'Aktifkan user ini terlebih dahulu sebelum mengubah datanya.');
+            return;
+        }
+
         $this->editingId = $user->id;
         $this->username = $user->username;
         $this->name = $user->name;
@@ -56,6 +74,8 @@ class Users extends Component
 
     public function save(): void
     {
+        $this->authorize($this->editingId ? 'edit_users' : 'create_users');
+
         // Logic khusus Super Admin
         if ($this->isEditingSuperAdmin) {
             $this->validate([
@@ -63,30 +83,32 @@ class Users extends Component
             ]);
 
             $user = User::find($this->editingId);
-            
+
             if ($this->password) {
                 $user->update(['password' => bcrypt($this->password)]);
                 $this->dispatch('notify', type: 'success', message: 'Password Super Admin berhasil diperbarui');
             } else {
                 $this->dispatch('notify', type: 'info', message: 'Tidak ada perubahan data');
             }
-            
+
             $this->showModal = false;
             return;
         }
 
-        // Logic User Biasa
+        // Logic User Biasa. Uniqueness discope ke user aktif saja (deleted_at IS NULL)
+        // supaya username/email milik user yang sudah dinonaktifkan bisa dipakai lagi.
+        $exceptId = $this->editingId ?: 'NULL';
         $rules = [
-            'username' => 'required|min:3|max:50|unique:users,username,' . $this->editingId,
+            'username' => "required|min:3|max:50|unique:users,username,{$exceptId},id,deleted_at,NULL",
             'name' => 'required|min:2|max:100',
-            'email' => 'required|email|unique:users,email,' . $this->editingId,
+            'email' => "required|email|unique:users,email,{$exceptId},id,deleted_at,NULL",
             'selectedRoles' => 'required|array|min:1',
         ];
-        
+
         if (!$this->editingId) {
             $rules['password'] = 'required|min:6';
         }
-        
+
         $this->validate($rules, [
             'selectedRoles.required' => 'Wajib memilih minimal satu role.',
             'selectedRoles.min' => 'Wajib memilih minimal satu role.',
@@ -116,27 +138,54 @@ class Users extends Component
         $this->showModal = false;
     }
 
-    public function delete(int $id): void
+    public function deactivate(int $id): void
     {
+        $this->authorize('delete_users');
+
         if ($id === auth()->id()) {
-            $this->dispatch('notify', type: 'error', message: 'Tidak dapat menghapus akun sendiri');
+            $this->dispatch('notify', type: 'error', message: 'Tidak dapat menonaktifkan akun Anda sendiri');
             return;
         }
 
         $user = User::getForEdit($id);
-        
+
         if ($user->hasRole('Super Admin')) {
-            $this->dispatch('notify', type: 'error', message: 'Super Admin tidak dapat dihapus');
+            $this->dispatch('notify', type: 'error', message: 'Super Admin tidak dapat dinonaktifkan oleh siapapun');
             return;
         }
 
-        $user->delete();
-        $this->dispatch('notify', type: 'success', message: 'User berhasil dihapus');
+        if (!$user->isActive()) {
+            $this->dispatch('notify', type: 'error', message: 'User sudah dalam keadaan nonaktif');
+            return;
+        }
+
+        $user->deactivate();
+        $this->dispatch('notify', type: 'success', message: 'User berhasil dinonaktifkan dan dikeluarkan dari semua sesi aktif');
+    }
+
+    public function activate(int $id): void
+    {
+        $this->authorize('activate_users');
+
+        $user = User::getForEdit($id);
+
+        if ($user->isActive()) {
+            $this->dispatch('notify', type: 'error', message: 'User sudah dalam keadaan aktif');
+            return;
+        }
+
+        if ($user->hasActiveUsernameOrEmailConflict()) {
+            $this->dispatch('notify', type: 'error', message: 'Tidak dapat mengaktifkan: username atau email sudah dipakai user aktif lain. Ubah username/email user tersebut terlebih dahulu.');
+            return;
+        }
+
+        $user->activate();
+        $this->dispatch('notify', type: 'success', message: 'User berhasil diaktifkan kembali');
     }
 
     public function render()
     {
-        $users = User::getPaginated($this->search, 10);
+        $users = User::getPaginated($this->search, $this->statusFilter, 10);
         $roles = Role::getAssignableRoles();
 
         return view('livewire.admin.users', compact('users', 'roles'))

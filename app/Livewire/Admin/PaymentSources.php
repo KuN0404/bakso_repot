@@ -71,6 +71,8 @@ class PaymentSources extends Component
 
     public function save(): void
     {
+        $this->authorize('manage_payment_sources');
+
         // Custom validation: sort_order must be unique (except when editing same record)
         $this->validate([
             'name' => 'required|min:2|max:100',
@@ -108,6 +110,8 @@ class PaymentSources extends Component
 
     public function delete(int $id): void
     {
+        $this->authorize('manage_payment_sources');
+
         PaymentSource::findOrFail($id)->delete();
         $this->dispatch('notify', type: 'success', message: 'Metode pembayaran berhasil dihapus');
     }

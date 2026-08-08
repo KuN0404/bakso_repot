@@ -54,20 +54,26 @@ class RolesAndPermissionsSeeder extends Seeder
             'view_financial_reports',
             'view_peak_hours_reports',
             'view_cancellation_reports',
+            'view_inventory_reports',
             'export_reports',
-            
+
+            // Returns
+            'view_returns',
+
             // Settings
             'manage_settings',
             'manage_printers',
             'manage_payment_sources',
-            
+            'manage_service_areas',
+
             // Users & Roles
             'view_users',
             'create_users',
             'edit_users',
             'delete_users',
+            'activate_users',
             'manage_roles',
-            
+
             // Kitchen / Service Display
             'view_kitchen_display',
             'update_order_status',
@@ -93,9 +99,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'view_modifiers', 'create_modifiers', 'edit_modifiers',
             'access_pos', 'view_transactions', 'cancel_transactions',
             'open_shift', 'close_shift', 'view_own_shifts', 'view_all_shifts', 'add_shift_expense',
-            'view_sales_reports', 'view_financial_reports', 'view_peak_hours_reports', 'view_cancellation_reports', 'export_reports',
-            'view_sales_reports', 'view_financial_reports', 'view_peak_hours_reports', 'view_cancellation_reports', 'export_reports',
-            'manage_payment_sources',
+            'view_sales_reports', 'view_financial_reports', 'view_peak_hours_reports', 'view_cancellation_reports',
+            'view_inventory_reports', 'view_returns', 'export_reports',
+            'manage_payment_sources', 'manage_service_areas',
             'view_kitchen_display', 'update_order_status',
         ]);
 

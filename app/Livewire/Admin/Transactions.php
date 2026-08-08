@@ -27,6 +27,8 @@ class Transactions extends Component
 
     public function cancel(int $id): void
     {
+        $this->authorize('cancel_transactions');
+
         $transaction = Transaction::findOrFail($id);
         
         if ($transaction->status === 'cancelled') {

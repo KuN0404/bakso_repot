@@ -36,6 +36,8 @@ class Roles extends Component
 
     public function save(): void
     {
+        $this->authorize('manage_roles');
+
         $this->validate(['name' => 'required|min:2|max:50|unique:roles,name,' . $this->editingId]);
 
         if ($this->editingId) {
@@ -54,6 +56,8 @@ class Roles extends Component
 
     public function delete(int $id): void
     {
+        $this->authorize('manage_roles');
+
         $role = Role::findOrFail($id);
         if ($role->name === 'Super Admin') {
             $this->dispatch('notify', type: 'error', message: 'Super Admin tidak dapat dihapus');

@@ -111,6 +111,8 @@ class ServiceAreas extends Component
 
     public function save(): void
     {
+        $this->authorize('manage_service_areas');
+
         $this->validate([
             'name' => 'required|min:2|max:50',
             'code' => 'required|min:1|max:20|unique:service_areas,code' . ($this->editingId ? ",{$this->editingId}" : ''),
@@ -156,6 +158,8 @@ class ServiceAreas extends Component
 
     public function delete(): void
     {
+        $this->authorize('manage_service_areas');
+
         if (!$this->deletingId) return;
 
         try {
